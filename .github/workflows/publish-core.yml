@@ -54,10 +54,13 @@ jobs:
         working-directory: packages/core
         env:
           NEW_VERSION: ${{ steps.resolve-version.outputs.version }}
-        run: npm version "$NEW_VERSION" --no-git-tag-version
+        run: npm version "$NEW_VERSION" --no-git-tag-version --allow-same-version
 
       - run: pnpm --filter cyoa-core run build
 
+      # Safe to retry: a version can reach this point already committed/tagged on a prior
+      # run that failed later (e.g. the actual npm publish step), so each part no-ops
+      # instead of erroring if it was already done.
       - name: Commit and tag release
         env:
           NEW_VERSION: ${{ steps.resolve-version.outputs.version }}
@@ -66,13 +69,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add packages/core/package.json
-          git commit -m "chore(release): cyoa-core v$NEW_VERSION"
-          git tag "cyoa-core@$NEW_VERSION"
+          git diff --cached --quiet || git commit -m "chore(release): cyoa-core v$NEW_VERSION"
           git push origin HEAD:main
-          git push origin "cyoa-core@$NEW_VERSION"
+          if git ls-remote --exit-code --tags origin "refs/tags/cyoa-core@$NEW_VERSION" >/dev/null 2>&1; then
+            echo "Tag cyoa-core@$NEW_VERSION already exists on origin, skipping"
+          else
+            git tag "cyoa-core@$NEW_VERSION"
+            git push origin "cyoa-core@$NEW_VERSION"
+          fi
 
       - name: Publish to npm
         working-directory: packages/core
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --no-git-checks --provenance
+        run: pnpm publish --no-git-checks --access public --provenance
