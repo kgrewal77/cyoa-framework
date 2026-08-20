@@ -9,7 +9,11 @@ on:
         type: string
 
 jobs:
+  run-ci:
+    uses: ./.github/workflows/ci.yml
+
   cut-version:
+    needs: run-ci
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -27,10 +31,6 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-
-      - run: pnpm --filter cyoa-core run lint
-      - run: pnpm --filter cyoa-core run typecheck
-      - run: pnpm --filter cyoa-core run test
 
       - name: Resolve version
         id: resolve-version
@@ -55,8 +55,6 @@ jobs:
         env:
           NEW_VERSION: ${{ steps.resolve-version.outputs.version }}
         run: npm version "$NEW_VERSION" --no-git-tag-version --allow-same-version
-
-      - run: pnpm --filter cyoa-core run build
 
       # Safe to retry: a version can reach this point already committed/tagged on a prior
       # run whose publish job failed, so each part no-ops instead of erroring if already done.
