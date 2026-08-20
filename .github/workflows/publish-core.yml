@@ -1,4 +1,4 @@
-name: Publish cyoa-core
+name: Publish CYOA-CORE
 
 on:
   workflow_dispatch:
