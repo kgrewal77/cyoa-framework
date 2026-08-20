@@ -30,7 +30,7 @@ export type Literal = string | number | boolean;
 /** Dot-separated path into the variables bag, e.g. "inventory.length" or "flags.hasKey". */
 export type VariablePath = string;
 
-export type ComparisonOp = "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+export type ComparisonOp = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "contains";
 
 export interface ComparisonCondition {
   op: ComparisonOp;

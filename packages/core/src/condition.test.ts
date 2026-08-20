@@ -38,4 +38,31 @@ describe("evaluateCondition", () => {
     expect(evaluateCondition("name > 'apple'", { name: "banana" })).toBe(true);
     expect(evaluateCondition("name < 'apple'", { name: "banana" })).toBe(false);
   });
+
+  it("evaluates contains for array membership", () => {
+    expect(evaluateCondition("inventory contains 'key'", { inventory: ["key", "sword"] })).toBe(true);
+    expect(evaluateCondition("inventory contains 'shield'", { inventory: ["key", "sword"] })).toBe(false);
+  });
+
+  it("evaluates contains as the structured AST form identically", () => {
+    const node: ConditionNode = { op: "contains", path: "inventory", value: "key" };
+    expect(evaluateCondition(node, { inventory: ["key"] })).toBe(true);
+  });
+
+  it("contains resolves nested paths", () => {
+    expect(evaluateCondition("player.inventory contains 'key'", { player: { inventory: ["key"] } })).toBe(
+      true,
+    );
+  });
+
+  it("contains is false when the path isn't an array", () => {
+    expect(evaluateCondition("inventory contains 'key'", { inventory: "key" })).toBe(false);
+    expect(evaluateCondition("inventory contains 'key'", {})).toBe(false);
+  });
+
+  it("contains composes with combinators", () => {
+    const vars = { inventory: ["key"], hasMap: true };
+    expect(evaluateCondition("inventory contains 'key' && hasMap === true", vars)).toBe(true);
+    expect(evaluateCondition("inventory contains 'sword' || hasMap === true", vars)).toBe(true);
+  });
 });

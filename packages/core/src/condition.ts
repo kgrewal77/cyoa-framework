@@ -27,7 +27,13 @@ function evaluateNode(node: ConditionNode, variables: Record<string, unknown>): 
     case "lt":
     case "lte":
       return compare(node.op, getPath(variables, node.path), node.value);
+    case "contains":
+      return containsMember(getPath(variables, node.path), node.value);
   }
+}
+
+function containsMember(actual: unknown, member: unknown): boolean {
+  return Array.isArray(actual) && actual.includes(member);
 }
 
 function compare(op: "gt" | "gte" | "lt" | "lte", actual: unknown, expected: unknown): boolean {

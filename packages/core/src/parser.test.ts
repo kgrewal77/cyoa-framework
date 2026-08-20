@@ -51,6 +51,27 @@ describe("parseConditionExpr", () => {
     });
   });
 
+  it("parses the contains operator", () => {
+    expect(parseConditionExpr("inventory contains 'key'")).toEqual({
+      op: "contains",
+      path: "inventory",
+      value: "key",
+    });
+    expect(parseConditionExpr("player.inventory contains 'key'")).toEqual({
+      op: "contains",
+      path: "player.inventory",
+      value: "key",
+    });
+  });
+
+  it("does not mistake an identifier prefixed with 'contains' for the keyword", () => {
+    expect(parseConditionExpr("containsAll === true")).toEqual({
+      op: "eq",
+      path: "containsAll",
+      value: true,
+    });
+  });
+
   it("parses negation", () => {
     expect(parseConditionExpr("!hasKey === true")).toEqual({
       op: "not",

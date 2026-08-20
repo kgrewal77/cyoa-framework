@@ -1,4 +1,4 @@
-import type { ConditionNode, EffectNode, Literal } from "./types.js";
+import type { ComparisonOp, ConditionNode, EffectNode, Literal } from "./types.js";
 
 export class ParseError extends Error {
   constructor(message: string, source: string) {
@@ -130,6 +130,11 @@ function tokenize(source: string): Token[] {
       i += 5;
       continue;
     }
+    if (rest.startsWith("contains") && !/[A-Za-z0-9_.]/.test(rest[8] ?? "")) {
+      tokens.push({ type: "CMPOP", value: "contains" });
+      i += 8;
+      continue;
+    }
 
     const pathMatch = /^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/.exec(rest);
     if (pathMatch) {
@@ -171,7 +176,7 @@ class TokenStream {
   }
 }
 
-function cmpOpToNode(op: string): "eq" | "neq" | "gt" | "gte" | "lt" | "lte" {
+function cmpOpToNode(op: string): ComparisonOp {
   switch (op) {
     case "===":
       return "eq";
@@ -185,6 +190,8 @@ function cmpOpToNode(op: string): "eq" | "neq" | "gt" | "gte" | "lt" | "lte" {
       return "lt";
     case "<=":
       return "lte";
+    case "contains":
+      return "contains";
     default:
       throw new Error(`Unreachable: unknown comparison operator "${op}"`);
   }

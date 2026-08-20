@@ -120,7 +120,7 @@ or as structured objects, if you'd rather have your editor check the logic itsel
 }
 ```
 
-Both forms support comparisons (`===`, `!==`, `>`, `>=`, `<`, `<=`), combinators (`&&`, `||`, `!`), and effects like `hp -= 10`, `score = 100`, or `inventory.push('key')`.
+Both forms support comparisons (`===`, `!==`, `>`, `>=`, `<`, `<=`), array membership (`inventory contains 'key'`), combinators (`&&`, `||`, `!`), and effects like `hp -= 10`, `score = 100`, or `inventory.push('key')`.
 
 ## Validating a story before you ship it
 

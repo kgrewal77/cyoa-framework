@@ -98,6 +98,36 @@ describe("createStoryEngine", () => {
     expect(() => engine.back()).toThrow(/history is empty/);
   });
 
+  it("gates a choice with the contains operator on an array variable", () => {
+    const story: Story = {
+      id: "vault",
+      title: "Vault",
+      startNodeId: "hall",
+      initialVariables: { inventory: [] },
+      nodes: {
+        hall: {
+          id: "hall",
+          content: "A hall with a vault door.",
+          choices: [
+            { text: "Take the key", target: "hall", effects: ["inventory.push('key')"] },
+            { text: "Open the vault", target: "vault", condition: "inventory contains 'key'" },
+          ],
+        },
+        vault: { id: "vault", content: "The vault opens.", choices: [] },
+      },
+    };
+
+    const engine = createStoryEngine(story);
+    expect(engine.availableChoices.map((c) => c.text)).toEqual(["Take the key"]);
+
+    engine.choose(0); // Take the key
+    expect(engine.variables).toEqual({ inventory: ["key"] });
+    expect(engine.availableChoices.map((c) => c.text)).toEqual(["Take the key", "Open the vault"]);
+
+    engine.choose(1); // Open the vault
+    expect(engine.currentNode.id).toBe("vault");
+  });
+
   it("getSnapshot() reflects current state", () => {
     const engine = createStoryEngine(makeStory());
     engine.choose(0);
