@@ -2,7 +2,16 @@
   "name": "cyoa-core",
   "version": "0.0.0",
   "description": "Framework-agnostic story engine for choose-your-own-adventure web stories.",
+  "keywords": ["cyoa", "interactive-fiction", "story-engine", "choose-your-own-adventure", "state-machine"],
+  "homepage": "https://kgrewal77.github.io/cyoa-framework/",
+  "bugs": "https://github.com/kgrewal77/cyoa-framework/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kgrewal77/cyoa-framework.git",
+    "directory": "packages/core"
+  },
   "license": "MIT",
+  "author": "kgrewal77",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",

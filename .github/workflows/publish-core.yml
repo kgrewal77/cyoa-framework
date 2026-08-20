@@ -1,0 +1,78 @@
+name: Publish cyoa-core
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (semver, e.g. 0.2.0). Leave blank to auto-bump the current minor version."
+        required: false
+        type: string
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter cyoa-core run lint
+      - run: pnpm --filter cyoa-core run typecheck
+      - run: pnpm --filter cyoa-core run test
+
+      - name: Resolve version
+        id: resolve-version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          CURRENT=$(node -p "require('./packages/core/package.json').version")
+          if [ -n "$INPUT_VERSION" ]; then
+            NEW_VERSION="$INPUT_VERSION"
+          else
+            NEW_VERSION=$(node -e "
+              const [major, minor] = '$CURRENT'.split('.').map(Number);
+              console.log(\`\${major}.\${minor + 1}.0\`);
+            ")
+          fi
+          echo "Publishing cyoa-core $CURRENT -> $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Bump package version
+        working-directory: packages/core
+        env:
+          NEW_VERSION: ${{ steps.resolve-version.outputs.version }}
+        run: npm version "$NEW_VERSION" --no-git-tag-version
+
+      - run: pnpm --filter cyoa-core run build
+
+      - name: Commit and tag release
+        env:
+          NEW_VERSION: ${{ steps.resolve-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/core/package.json
+          git commit -m "chore(release): cyoa-core v$NEW_VERSION"
+          git tag "cyoa-core@$NEW_VERSION"
+          git push origin HEAD:main
+          git push origin "cyoa-core@$NEW_VERSION"
+
+      - name: Publish to npm
+        working-directory: packages/core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm publish --no-git-checks --provenance
