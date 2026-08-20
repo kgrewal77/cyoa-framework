@@ -1,0 +1,10 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["packages/core/src/index.ts"],
+  "tsconfig": "packages/core/tsconfig.json",
+  "out": "apps/docs/api",
+  "name": "cyoa-core",
+  "readme": "packages/core/README.md",
+  "excludePrivate": true,
+  "excludeInternal": true
+}
