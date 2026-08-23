@@ -1,0 +1,123 @@
+name: Publish CYOA-REACT
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (semver, e.g. 0.2.0). Leave blank to auto-bump the current minor version."
+        required: false
+        type: string
+
+jobs:
+  quality-checks:
+    uses: ./.github/workflows/quality-checks.yml
+
+  cut-version:
+    needs: quality-checks
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Resolve version
+        id: resolve-version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          CURRENT=$(node -p "require('./packages/react/package.json').version")
+          if [ -n "$INPUT_VERSION" ]; then
+            NEW_VERSION="$INPUT_VERSION"
+          else
+            NEW_VERSION=$(node -e "
+              const [major, minor] = '$CURRENT'.split('.').map(Number);
+              console.log(\`\${major}.\${minor + 1}.0\`);
+            ")
+          fi
+          echo "Cutting cyoa-react $CURRENT -> $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Bump package version
+        working-directory: packages/react
+        env:
+          NEW_VERSION: ${{ steps.resolve-version.outputs.version }}
+        run: npm version "$NEW_VERSION" --no-git-tag-version --allow-same-version
+
+      # Safe to retry: a version can reach this point already committed/tagged on a prior
+      # run whose publish job failed, so each part no-ops instead of erroring if already done.
+      - name: Commit and tag release
+        env:
+          NEW_VERSION: ${{ steps.resolve-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/react/package.json
+          git diff --cached --quiet || git commit -m "chore(release): cyoa-react v$NEW_VERSION"
+          git push origin HEAD:main
+          if git ls-remote --exit-code --tags origin "refs/tags/cyoa-react@$NEW_VERSION" >/dev/null 2>&1; then
+            echo "Tag cyoa-react@$NEW_VERSION already exists on origin, skipping"
+          else
+            git tag "cyoa-react@$NEW_VERSION"
+            git push origin "cyoa-react@$NEW_VERSION"
+          fi
+
+  publish-npm:
+    needs: cut-version
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Verify checked-out version matches the cut release
+        working-directory: packages/react
+        env:
+          EXPECTED_VERSION: ${{ needs.cut-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          ACTUAL_VERSION=$(node -p "require('./package.json').version")
+          if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "Expected version $EXPECTED_VERSION but package.json has $ACTUAL_VERSION" >&2
+            exit 1
+          fi
+
+      # cyoa-core must be built too: cyoa-react's build resolves cyoa-core's types/dist
+      # through the workspace link, and pnpm publish rewrites its "workspace:*" dependency
+      # to cyoa-core's current published version.
+      - run: pnpm --filter cyoa-core run build
+      - run: pnpm --filter cyoa-react run build
+
+      # Uses npm Trusted Publishing (OIDC) via the id-token: write permission above.
+      # No NPM_TOKEN secret needed once a trusted publisher is configured for this
+      # repo + workflow file in the package's npm settings.
+      - name: Publish to npm
+        working-directory: packages/react
+        run: pnpm publish --no-git-checks --access public --provenance
