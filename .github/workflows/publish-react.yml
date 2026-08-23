@@ -109,9 +109,23 @@ jobs:
             exit 1
           fi
 
+      # pnpm publish rewrites cyoa-react's "workspace:^" dependency to
+      # "^<cyoa-core's current package.json version>". If that version was bumped
+      # locally but never actually published (e.g. publish-core.yml hasn't run yet),
+      # the published cyoa-react would depend on a cyoa-core version that doesn't
+      # exist on the registry. Fail fast instead of shipping a broken dependency.
+      - name: Verify the cyoa-core version it will depend on is published
+        run: |
+          set -euo pipefail
+          CORE_VERSION=$(node -p "require('./packages/core/package.json').version")
+          if ! npm view "cyoa-core@$CORE_VERSION" version >/dev/null 2>&1; then
+            echo "cyoa-core@$CORE_VERSION is not published on npm yet — run publish-core.yml first" >&2
+            exit 1
+          fi
+          echo "Verified cyoa-core@$CORE_VERSION is published"
+
       # cyoa-core must be built too: cyoa-react's build resolves cyoa-core's types/dist
-      # through the workspace link, and pnpm publish rewrites its "workspace:*" dependency
-      # to cyoa-core's current published version.
+      # through the workspace link.
       - run: pnpm --filter cyoa-core run build
       - run: pnpm --filter cyoa-react run build
 
