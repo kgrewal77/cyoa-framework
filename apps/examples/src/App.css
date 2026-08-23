@@ -1,0 +1,65 @@
+.app {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+}
+
+.tagline {
+  margin: 0 0 2.5rem;
+  color: #9a978f;
+  font-size: 0.9rem;
+}
+
+.scene {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.choice,
+.restart {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #3a3d44;
+  background: #1e2127;
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.choice:hover,
+.restart:hover {
+  border-color: #6b6f78;
+  background: #262a31;
+}
+
+.restart {
+  text-align: center;
+  font-weight: 600;
+}
+
+.back {
+  margin-top: 1.5rem;
+  background: none;
+  border: none;
+  color: #9a978f;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.back:hover {
+  color: #e8e6e1;
+}
