@@ -1,0 +1,62 @@
+{
+  "name": "cyoa-react",
+  "version": "0.1.0",
+  "description": "React bindings for cyoa-core — render choose-your-own-adventure stories as React components.",
+  "keywords": [
+    "cyoa",
+    "interactive-fiction",
+    "react",
+    "story-player",
+    "choose-your-own-adventure"
+  ],
+  "homepage": "https://kgrewal77.github.io/cyoa-framework/",
+  "bugs": "https://github.com/kgrewal77/cyoa-framework/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kgrewal77/cyoa-framework.git",
+    "directory": "packages/react"
+  },
+  "license": "MIT",
+  "author": "kgrewal77",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --config ../../eslint.config.js src"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "cyoa-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^30.0.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}
