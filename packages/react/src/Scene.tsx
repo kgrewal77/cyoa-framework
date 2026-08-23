@@ -1,4 +1,5 @@
 import type { StoryNode } from "cyoa-core";
+import { themeCssVar } from "./theme.js";
 
 export interface SceneProps {
   node: StoryNode;
@@ -16,5 +17,5 @@ export function Scene({ node }: SceneProps) {
       ? node.content
       : node.content.map((block) => block.value).join("\n\n");
 
-  return <p>{text}</p>;
+  return <p style={{ color: `var(${themeCssVar.text})` }}>{text}</p>;
 }

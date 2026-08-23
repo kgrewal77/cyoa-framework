@@ -6,3 +6,7 @@ export { StoryPlayer } from "./StoryPlayer.js";
 export type { StoryPlayerProps, StoryPlayerComponents } from "./StoryPlayer.js";
 export { useStory } from "./useStory.js";
 export type { UseStoryResult, AvailableChoice } from "./useStory.js";
+export { ThemeProvider, useTheme } from "./ThemeProvider.js";
+export type { ThemeProviderProps } from "./ThemeProvider.js";
+export { lightTheme, darkTheme, createTheme } from "./theme.js";
+export type { Theme } from "./theme.js";

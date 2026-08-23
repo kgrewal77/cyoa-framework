@@ -99,6 +99,35 @@ function CustomPlayer({ story }: { story: Story }) {
 }
 ```
 
+## Theming
+
+`StoryPlayer` accepts a `theme` prop — `lightTheme` (the default) or `darkTheme`:
+
+```tsx
+import { StoryPlayer, darkTheme } from "cyoa-react";
+
+<StoryPlayer story={story} theme={darkTheme} />;
+```
+
+A theme is a plain object of color tokens (`colorBackground`, `colorText`, `colorChoiceBackground`, etc. — see `Theme` in `theme.ts`). `StoryPlayer` applies it via a `ThemeProvider`, which exposes the colors as CSS custom properties (`--cyoa-background`, `--cyoa-text`, ...) that the default `Scene`/`Choice` components read. If you're driving the story yourself with `useStory`, wrap your own markup in `<ThemeProvider theme={...}>` to get the same variables, or call `useTheme()` to read the active theme's values directly in your own components.
+
+### Custom themes
+
+`theme` isn't limited to `lightTheme`/`darkTheme` — anything satisfying the `Theme` shape works. `createTheme` overrides one or more tokens of a base theme without having to restate the rest:
+
+```tsx
+import { StoryPlayer, createTheme } from "cyoa-react";
+
+const sunsetTheme = createTheme({
+  colorChoiceBackground: "#fef3c7",
+  colorChoiceBackgroundHover: "#fde68a",
+});
+
+<StoryPlayer story={story} theme={sunsetTheme} />;
+```
+
+Or write one from scratch as a plain object typed as `Theme`, with every token specified.
+
 ## Content and sanitization
 
 `Scene`'s default renderer treats `node.content` as plain text — safe by construction, since React escapes it. If you render rich text or Markdown yourself (e.g. via `dangerouslySetInnerHTML`), sanitize it first with something like `DOMPurify`. `cyoa-react` does not do this for you.

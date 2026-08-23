@@ -3,6 +3,7 @@ import type { Story } from "cyoa-core";
 import { describe, expect, it } from "vitest";
 import type { ChoiceProps } from "./Choice.js";
 import { StoryPlayer } from "./StoryPlayer.js";
+import { darkTheme } from "./theme.js";
 
 function makeStory(): Story {
   return {
@@ -54,5 +55,12 @@ describe("StoryPlayer", () => {
     render(<StoryPlayer story={makeStory()} components={{ Choice: CustomChoice }} />);
 
     expect(screen.getByRole("button", { name: "Custom: Leave" })).toBeInTheDocument();
+  });
+
+  it("applies the given theme's colors to the wrapper", () => {
+    const { container } = render(<StoryPlayer story={makeStory()} theme={darkTheme} />);
+    const wrapper = container.firstElementChild as HTMLElement;
+
+    expect(wrapper.style.getPropertyValue("--cyoa-background")).toBe(darkTheme.colorBackground);
   });
 });
